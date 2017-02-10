@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{57fda0a7-b98c-4da7-a96e-b54907c93d42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Basic">
+      <UniqueIdentifier>{05e6c948-eeab-42ee-a40b-b577943b9e2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Lab2">
+      <UniqueIdentifier>{744099da-73fb-4784-b90d-118354e19371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Deferred">
+      <UniqueIdentifier>{fe5f095d-6788-4830-af37-0cc3dc9459ef}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Sources\GraphicsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\StaticMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\ContentManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\DDSTextureLoader\DDSTextureLoader.cpp">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sources\GraphicsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\StaticMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\ContentManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\DataStructures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\bth_image.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\DDSTextureLoader\DDSTextureLoader.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Deferred\Deferred_VS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Deferred\Deferred_PS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Lab2Shaders\Lab2_VS.hlsl">
+      <Filter>Shaders\Lab2</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Lab2Shaders\Lab2_PS.hlsl">
+      <Filter>Shaders\Lab2</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Lab2Shaders\Lab2_GS.hlsl">
+      <Filter>Shaders\Lab2</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\BasicShaders\Basic_PS.hlsl">
+      <Filter>Shaders\Basic</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\BasicShaders\Basic_VS.hlsl">
+      <Filter>Shaders\Basic</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

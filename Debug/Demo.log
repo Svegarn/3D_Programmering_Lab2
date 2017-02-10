@@ -1,0 +1,12 @@
+﻿Build started 10/2/2017 16:40:04.
+     1>Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" on node 2 (Build target(s)).
+     1>FxCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"main" /Fo "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Debug\BasicPixelShader.cso" /Od /Zi Shaders\BasicShaders\BasicPixelShader.hlsl 
+     1>FXC : error X3501: 'main': entrypoint not found
+         
+         compilation failed; no code produced
+     1>Done Building Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.09

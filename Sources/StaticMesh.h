@@ -1,0 +1,34 @@
+#ifndef STATICMESH_H
+#define STATICMESH_H
+
+#include "GraphicsManager.h"
+
+class StaticMesh
+{
+private:
+	ID3D11Buffer* mVertexBuffer = nullptr;
+	ID3D11Buffer* mWorldMatrixBuffer = nullptr;
+	DirectX::XMFLOAT4X4 mWorldMatrix;
+	DataStructures::LambertMaterial mMaterial;
+
+public:
+	UINT vertexCount = 0;
+
+	StaticMesh() {}
+	StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
+	StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
+	~StaticMesh();
+
+	void Update();
+
+	ID3D11Buffer** getVertexBuffer();
+	ID3D11Buffer** getWorldMatrixBuffer();
+
+	void setWorldMatrix(DirectX::XMMATRIX matrix);
+	DirectX::XMFLOAT4X4* getWorldMatrix();
+
+	void setMaterial(DataStructures::LambertData material, std::wstring texturePath);
+	DataStructures::LambertMaterial* getMaterial();
+};
+
+#endif
