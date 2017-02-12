@@ -46,6 +46,18 @@ private:
 	// G-Buffers
 	ID3D11ShaderResourceView* mShadow_SRV = nullptr;
 
+	ID3D11Texture2D* mAlbedo_T2D = nullptr;
+	ID3D11Texture2D* mNormal_T2D = nullptr;
+	ID3D11Texture2D* mMaterial_T2D = nullptr;
+
+	ID3D11ShaderResourceView* mAlbedo_SRV = nullptr;
+	ID3D11ShaderResourceView* mNormal_SRV = nullptr;
+	ID3D11ShaderResourceView* mMaterial_SRV = nullptr;
+
+	ID3D11RenderTargetView* mAlbedo_RTV = nullptr;
+	ID3D11RenderTargetView* mNormal_RTV = nullptr;
+	ID3D11RenderTargetView* mMaterial_RTV = nullptr;
+
 	// Resources
 	ID3D11ShaderResourceView* mBTH_SRV = nullptr;
 
@@ -75,6 +87,7 @@ private:
 	ID3D11ShaderResourceView* tempSRV[8] = { NULL };
 
 	void CreateDepthBuffer();
+	void CreateGBuffers();
 	void CreateShaderResources();
 	void CreateSamplers();
 	void SetViewport();

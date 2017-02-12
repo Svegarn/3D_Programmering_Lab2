@@ -64,12 +64,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Deferred\Deferred_VS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\Deferred\Deferred_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\Lab2Shaders\Lab2_VS.hlsl">
       <Filter>Shaders\Lab2</Filter>
     </FxCompile>
@@ -84,6 +78,12 @@
     </FxCompile>
     <FxCompile Include="Shaders\BasicShaders\Basic_VS.hlsl">
       <Filter>Shaders\Basic</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DeferredShaders\Deferred_PS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DeferredShaders\Deferred_VS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@
 
 /*	TODO:
 
-	* Deferred, add function to create G-Buffers, finish shaders and change existing shaders
+	* Deferred, change rendertargets of basic pass, finish shaders and change existing shaders
 	* Shadow maping, continue (SRV is already created), have to create shaders etc
 	* Normal mapping
 	* Correct sampling

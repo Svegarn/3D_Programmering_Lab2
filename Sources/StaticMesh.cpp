@@ -68,6 +68,9 @@ StaticMesh::~StaticMesh()
 {
 	mVertexBuffer->Release();
 	mWorldMatrixBuffer->Release();
+
+	if(mMaterial.srv != nullptr)
+		mMaterial.srv->Release();
 }
 
 void StaticMesh::Update()

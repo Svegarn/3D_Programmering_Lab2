@@ -35,12 +35,16 @@ void GraphicsManager::Render()
 {
 	ResetRTV_SRV();
 
+	mDeviceContext->ClearRenderTargetView(mBackbufferRTV, clearColor);
+	mDeviceContext->ClearRenderTargetView(mAlbedo_RTV, clearColor);
+	mDeviceContext->ClearRenderTargetView(mNormal_RTV, clearColor);
+	mDeviceContext->ClearRenderTargetView(mMaterial_RTV, clearColor);
+
+	mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
 	// #########################################################
 
 	mDeviceContext->OMSetRenderTargets(1, &mBackbufferRTV, mDepthBuffer_DSV);
-
-	mDeviceContext->ClearRenderTargetView(mBackbufferRTV, clearColor);
-	mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	mDeviceContext->VSSetShader(mLab2VertexShader, nullptr, 0);
 	mDeviceContext->HSSetShader(nullptr, nullptr, 0);
@@ -79,6 +83,21 @@ void GraphicsManager::Render()
 	mDeviceContext->IASetInputLayout(mBasicVertexLayout);
 
 	mDeviceContext->Draw(6, 0);
+
+	// #########################################################
+
+	mDeviceContext->OMSetRenderTargets(1, &mBackbufferRTV, NULL);
+
+	mDeviceContext->VSSetShader(mDeferredVertexShader, nullptr, 0);
+	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->PSSetShader(mDeferredPixelShader, nullptr, 0);
+
+	mDeviceContext->PSSetShaderResources(0, 1, &mShadow_SRV);
+
+	mDeviceContext->IASetInputLayout(NULL);
+	mDeviceContext->IASetVertexBuffers(0, 0, NULL, 0, 0);
+
+	mDeviceContext->Draw(3, 0);
 
 	// #########################################################
 
@@ -134,9 +153,11 @@ HRESULT GraphicsManager::CreateDirect3DContext(HWND wndHandle, UINT width, UINT 
 	SetViewport();
 	CreateLab2Shaders();
 	CreateBasicShaders();
+	CreateDeferredShaders();
 	CreateCameraBuffer();
 	SetRasterizerState();
 	CreateDepthBuffer();
+	CreateGBuffers();
 	CreateShaderResources();
 	CreateSamplers();
 
@@ -304,7 +325,7 @@ void GraphicsManager::CreateDeferredShaders()
 	ID3DBlob* pVS = nullptr;
 	ID3DBlob* errorblob = nullptr;
 	HRESULT hr = D3DCompileFromFile(
-		L"Shaders/BasicShaders/Deferred_VS.hlsl", // filename
+		L"Shaders/DeferredShaders/Deferred_VS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
 		"VS_main",		// entry point
@@ -342,7 +363,7 @@ void GraphicsManager::CreateDeferredShaders()
 
 	ID3DBlob* pPS = nullptr;
 	D3DCompileFromFile(
-		L"Shaders/BasicShaders/Deferred_PS.hlsl", // filename
+		L"Shaders/DeferredShaders/Deferred_PS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
 		"PS_main",		// entry point
@@ -397,9 +418,45 @@ void GraphicsManager::CreateDepthBuffer()
 	hr = mDevice->CreateShaderResourceView(mDepthBuffer_T2D, &shadowDesc, &mShadow_SRV);
 }
 
+void GraphicsManager::CreateGBuffers() {
+	D3D11_TEXTURE2D_DESC t2dDesc;
+	t2dDesc.Width = mWindowWidth;
+	t2dDesc.Height = mWindowHeight;
+	t2dDesc.MipLevels = t2dDesc.ArraySize = 1;
+	t2dDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	t2dDesc.SampleDesc.Count = 1;
+	t2dDesc.SampleDesc.Quality = 0;
+	t2dDesc.Usage = D3D11_USAGE_DEFAULT;
+	t2dDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	t2dDesc.CPUAccessFlags = 0;
+	t2dDesc.MiscFlags = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = t2dDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = t2dDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+
+	HRESULT hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mAlbedo_T2D);
+	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mNormal_T2D);
+	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mMaterial_T2D);
+
+	hr = mDevice->CreateShaderResourceView(mAlbedo_T2D, &srvDesc, &mAlbedo_SRV);
+	hr = mDevice->CreateShaderResourceView(mNormal_T2D, &srvDesc, &mNormal_SRV);
+	hr = mDevice->CreateShaderResourceView(mMaterial_T2D, &srvDesc, &mMaterial_SRV);
+
+	hr = mDevice->CreateRenderTargetView(mAlbedo_T2D, &rtvDesc, &mAlbedo_RTV);
+	hr = mDevice->CreateRenderTargetView(mNormal_T2D, &rtvDesc, &mNormal_RTV);
+	hr = mDevice->CreateRenderTargetView(mMaterial_T2D, &rtvDesc, &mMaterial_RTV);
+}
+
 void GraphicsManager::CreateShaderResources()
 {
-
 	D3D11_TEXTURE2D_DESC desc;
 	desc.Width = 64;
 	desc.Height = 64;
@@ -578,9 +635,24 @@ GraphicsManager::~GraphicsManager()
 {
 	mDepthBuffer_T2D->Release();
 	mBTH_T2D->Release();
-	
+
 	mDepthBuffer_DSV->Release();
+
+	mShadow_SRV->Release();
 	mBTH_SRV->Release();
+
+	mAlbedo_SRV->Release();
+	mNormal_SRV->Release();
+	mMaterial_SRV->Release();
+
+	mAlbedo_RTV->Release();
+	mNormal_RTV->Release();
+	mMaterial_RTV->Release();
+
+	mAlbedo_T2D->Release();
+	mNormal_T2D->Release();
+	mMaterial_T2D->Release();
+
 	mCameraCbuffer->Release();
 	mLinearClampSampler->Release();
 
@@ -592,6 +664,10 @@ GraphicsManager::~GraphicsManager()
 	mBasicVertexLayout->Release();
 	mBasicVertexShader->Release();
 	mBasicPixelShader->Release();
+
+	mDeferredVertexLayout->Release();
+	mDeferredVertexShader->Release();
+	mDeferredPixelShader->Release();
 
 	mBackbufferRTV->Release();
 	mRasterState->Release();
