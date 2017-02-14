@@ -69,6 +69,9 @@ private:
 
 	ID3D11SamplerState* mLinearClampSampler = nullptr;
 
+	ID3D11InputLayout* mShadowVertexLayout = nullptr;
+	ID3D11VertexShader* mShadowVertexShader = nullptr;
+
 	ID3D11InputLayout* mLab2VertexLayout = nullptr;
 	ID3D11VertexShader* mLab2VertexShader = nullptr;
 	ID3D11GeometryShader* mLab2GeometryShader = nullptr;
@@ -110,6 +113,7 @@ public:
 	void Render();
 
 	HRESULT CreateDirect3DContext(HWND wndHandle, UINT width, UINT height);
+	void CreateShadowShaders();
 	void CreateLab2Shaders();
 	void CreateBasicShaders();
 	void CreateDeferredShaders();

@@ -25,6 +25,9 @@
     <Filter Include="Shaders\Deferred">
       <UniqueIdentifier>{fe5f095d-6788-4830-af37-0cc3dc9459ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Shadow">
+      <UniqueIdentifier>{b2ed9734-c528-411a-9cfd-f50377340d26}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\GraphicsManager.cpp">
@@ -84,6 +87,9 @@
     </FxCompile>
     <FxCompile Include="Shaders\DeferredShaders\Deferred_VS.hlsl">
       <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Shadow\Shadow_VS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

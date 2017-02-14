@@ -78,6 +78,8 @@ void ContentManager::initializeContent()
 		);
 
 	staticMeshes.push_back(floor);
+
+	StaticMesh* sphere = new StaticMesh("Assets/sphere.fbx");
 }
 
 ContentManager::~ContentManager()

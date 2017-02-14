@@ -69,6 +69,10 @@ void GraphicsManager::Render()
 
 	// #########################################################
 
+	ID3D11RenderTargetView* targets[3] = { mAlbedo_RTV, mNormal_RTV, mMaterial_RTV };
+
+	mDeviceContext->OMSetRenderTargets(3, targets, mDepthBuffer_DSV);
+
 	mDeviceContext->VSSetShader(mBasicVertexShader, nullptr, 0);
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mBasicPixelShader, nullptr, 0);
@@ -92,10 +96,15 @@ void GraphicsManager::Render()
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mDeferredPixelShader, nullptr, 0);
 
-	mDeviceContext->PSSetShaderResources(0, 1, &mShadow_SRV);
+	ID3D11ShaderResourceView* sources[4] = { mShadow_SRV, mAlbedo_SRV, mNormal_SRV, mMaterial_SRV };
+
+	mDeviceContext->PSSetShaderResources(0, 4, sources);
 
 	mDeviceContext->IASetInputLayout(NULL);
 	mDeviceContext->IASetVertexBuffers(0, 0, NULL, 0, 0);
+	mDeviceContext->IASetIndexBuffer(NULL, (DXGI_FORMAT)0, 0);
+
+	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	mDeviceContext->Draw(3, 0);
 
@@ -151,6 +160,7 @@ HRESULT GraphicsManager::CreateDirect3DContext(HWND wndHandle, UINT width, UINT 
 	}
 
 	SetViewport();
+	CreateShadowShaders();
 	CreateLab2Shaders();
 	CreateBasicShaders();
 	CreateDeferredShaders();
@@ -164,6 +174,47 @@ HRESULT GraphicsManager::CreateDirect3DContext(HWND wndHandle, UINT width, UINT 
 	ContentManager::getInstance().initializeContent();
 
 	return hr;
+}
+
+void GraphicsManager::CreateShadowShaders() {
+	//create vertex shader
+	if (mShadowVertexShader != nullptr)
+		mShadowVertexShader->Release();
+
+	ID3DBlob* pVS = nullptr;
+	ID3DBlob* errorblob = nullptr;
+	HRESULT hr = D3DCompileFromFile(
+		L"Shaders/Shadow/Shadow_VS.hlsl", // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		"VS_main",		// entry point
+		"vs_5_0",		// shader model (target)
+		0,				// shader compile options			// here DEBUGGING OPTIONS
+		0,				// effect compile options
+		&pVS,			// double pointer to ID3DBlob		
+		&errorblob			// pointer for Error Blob messages.
+							// how to use the Error blob, see here
+							// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+		);
+
+	if (errorblob) {
+		OutputDebugStringA((char*)errorblob->GetBufferPointer());
+		errorblob->Release();
+	}
+
+	hr = mDevice->CreateVertexShader(pVS->GetBufferPointer(), pVS->GetBufferSize(), nullptr, &mShadowVertexShader);
+
+	if (mShadowVertexLayout == nullptr) {
+		//create input layout (verified using vertex shader)
+		D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+		mDevice->CreateInputLayout(inputDesc, ARRAYSIZE(inputDesc), pVS->GetBufferPointer(), pVS->GetBufferSize(), &mShadowVertexLayout);
+		// we do not need anymore this COM object, so we release it.
+	}
+	pVS->Release();
 }
 
 void GraphicsManager::CreateLab2Shaders()
@@ -655,6 +706,9 @@ GraphicsManager::~GraphicsManager()
 
 	mCameraCbuffer->Release();
 	mLinearClampSampler->Release();
+
+	mShadowVertexLayout->Release();
+	mShadowVertexShader->Release();
 
 	mLab2VertexLayout->Release();
 	mLab2VertexShader->Release();

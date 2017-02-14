@@ -1,5 +1,71 @@
 #include "StaticMesh.h"
 
+StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
+{
+	FbxManager* manager = FbxManager::Create();
+	FbxIOSettings *ios = FbxIOSettings::Create(manager, IOSROOT);
+	manager->SetIOSettings(ios);
+	
+	// Create an importer using the SDK manager.
+	FbxImporter* importer = FbxImporter::Create(manager, "");
+	
+	// Use the first argument as the filename for the importer.
+	if (!importer->Initialize(filePath.c_str(), -1, manager->GetIOSettings()))
+		exit(-1);
+	
+	// Create a new scene so that it can be populated by the imported file.
+	FbxScene* scene = FbxScene::Create(manager, "newScene");
+	
+	// Import the contents of the file into the scene.
+	importer->Import(scene);
+	
+	// The file is imported, so get rid of the importer.
+	importer->Destroy();
+	
+	// Print the nodes of the scene and their attributes recursively.
+	// Note that we are not printing the root node because it should
+	// not contain any attributes.
+	std::vector<FbxNode*> dagNodes;
+	FbxNode* root = scene->GetRootNode();
+	if (root) {
+		for (int i = 0; i < root->GetChildCount(); i++) {
+			dagNodes.push_back(root->GetChild(i));
+		}
+	}
+
+	std::string name = dagNodes[0]->GetName();
+	FbxMesh* mesh = dagNodes[0]->GetMesh();
+	FbxVector4* ctrlPoints = mesh->GetControlPoints();
+	FbxVector4* normals;
+	volatile int numVertices = mesh->GetControlPointsCount();
+	volatile int numPolygons = mesh->GetPolygonCount();
+	DataStructures::Vertex* vertexList = new DataStructures::Vertex[numVertices];
+
+	for (UINT i = 0; i < numPolygons; i++) {
+		for (UINT j = 0; j < 3; j++) {
+			int vertexIndex = mesh->GetPolygonVertex(i, j);
+			vertexList[(i * 3) + j].position = {
+				(float)ctrlPoints[vertexIndex][0],
+				(float)ctrlPoints[vertexIndex][1],
+				(float)ctrlPoints[vertexIndex][2]
+			};
+		}
+	}
+
+	for (int i = 0; i < numVertices; i++) {
+		vertexList[i].position = {
+			(float)ctrlPoints[i][0],
+			(float)ctrlPoints[i][1],
+			(float)ctrlPoints[i][2]
+		};
+	}
+
+	std::string bla = name;
+
+	// Destroy the SDK manager and all the other objects it was handling.
+	manager->Destroy();
+}
+
 StaticMesh::StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix)
 {
 	DirectX::XMStoreFloat4x4(&mWorldMatrix, DirectX::XMMatrixTranspose(worldMatrix));

@@ -17,8 +17,17 @@ struct VS_OUT
 	float4 wPos : POSITION0;
 };
 
-float4 PS_main(VS_OUT input) : SV_Target
+struct PS_OUT
 {
+	float4 AlbedoTex: SV_Target0;
+	float4 NormalTex: SV_Target1;
+	float4 MaterialTex: SV_Target2;
+};
+
+PS_OUT PS_main(VS_OUT input) : SV_Target
+{
+	PS_OUT output = (PS_OUT)0;
+
 	input.Tex.x += (dt.y * 0.0005);
 	float3 lightDir = float3(0.0f, -1.0f, 0.0f);
 	float4 outColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -31,10 +40,10 @@ float4 PS_main(VS_OUT input) : SV_Target
 	float3 diffuseLight = materialColor * diffuseIntensity;
 
 	// Specular
-	float specularIntensity = 2000.0f;
+	float specularIntensity = 3.0f;
 	float3 pixelToEye = normalize(eyePos - input.wPos).xyz;
 	float3 reflection = reflect(lightDir, normal);
-	float3 specularLight = pow(max(dot(reflection, pixelToEye), 0.0f), 3.0f);
+	float3 specularLight = pow(max(dot(reflection, pixelToEye), 0.0f), specularIntensity);
 
 
 	// Pulsing
@@ -43,5 +52,10 @@ float4 PS_main(VS_OUT input) : SV_Target
 	outColor = float4(diffuseLight + specularLight, 1.0f);
 
 	//return float4 (input.wPos.xyz, 1.0f);
-	return outColor;
+
+	output.AlbedoTex = outColor;
+	output.NormalTex = float4(normal, 0.0f);
+	output.MaterialTex = input.wPos;
+
+	return output;
 };

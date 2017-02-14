@@ -1,7 +1,11 @@
 #ifndef STATICMESH_H
 #define STATICMESH_H
 
+#include <fbxsdk.h>
+
 #include "GraphicsManager.h"
+
+using namespace fbxsdk;
 
 class StaticMesh
 {
@@ -15,6 +19,7 @@ public:
 	UINT vertexCount = 0;
 
 	StaticMesh() {}
+	StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	~StaticMesh();

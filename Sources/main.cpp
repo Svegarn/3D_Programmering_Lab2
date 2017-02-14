@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <chrono>
+#include <sstream>
 
 #include "GraphicsManager.h"
 
@@ -22,6 +23,13 @@
 
 #define	WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
+
+#define DEBUGOUT( str )						\
+{											\
+   std::ostringstream os_;					\
+   os_ << str;								\
+   OutputDebugString( os_.str().c_str() );  \
+}
 
 HWND InitWindow(HINSTANCE hInstance);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
