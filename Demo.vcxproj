@@ -97,6 +97,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\lib\vs2015\x64\release</AdditionalLibraryDirectories>
@@ -107,6 +108,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\lib\vs2015\x64\release</AdditionalLibraryDirectories>

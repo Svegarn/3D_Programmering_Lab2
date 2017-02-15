@@ -42,7 +42,7 @@ void GraphicsManager::Render()
 
 	mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	// #########################################################
+	// ######################################################### SPINNING BOX
 
 	mDeviceContext->OMSetRenderTargets(1, &mBackbufferRTV, mDepthBuffer_DSV);
 
@@ -67,7 +67,7 @@ void GraphicsManager::Render()
 
 	mDeviceContext->Draw(6, 0);
 
-	// #########################################################
+	// ######################################################### GEOMETRY PASS
 
 	ID3D11RenderTargetView* targets[3] = { mAlbedo_RTV, mNormal_RTV, mMaterial_RTV };
 
@@ -77,16 +77,19 @@ void GraphicsManager::Render()
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mBasicPixelShader, nullptr, 0);
 
-	mDeviceContext->PSSetShaderResources(0, 1, &ContentManager::getInstance().getStaticMeshes()[1]->getMaterial()->srv);
-	
-	mDeviceContext->VSSetConstantBuffers(0, 1, &mCameraCbuffer);
-	mDeviceContext->VSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[1]->getWorldMatrixBuffer());
+	for (UINT i = 1; i < ContentManager::getInstance().getStaticMeshes().size(); i++)
+	{
+		mDeviceContext->PSSetShaderResources(0, 1, &ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->srv);
 
-	mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[1]->getVertexBuffer(), &vertexSize, &offset);
+		mDeviceContext->VSSetConstantBuffers(0, 1, &mCameraCbuffer);
+		mDeviceContext->VSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[i]->getWorldMatrixBuffer());
 
-	mDeviceContext->IASetInputLayout(mBasicVertexLayout);
+		mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[i]->getVertexBuffer(), &vertexSize, &offset);
 
-	mDeviceContext->Draw(6, 0);
+		mDeviceContext->IASetInputLayout(mBasicVertexLayout);
+
+		mDeviceContext->Draw(ContentManager::getInstance().getStaticMeshes()[i]->vertexCount, 0);
+	}
 
 	// #########################################################
 

@@ -24,7 +24,7 @@ struct PS_OUT
 	float4 MaterialTex: SV_Target2;
 };
 
-PS_OUT PS_main(VS_OUT input) : SV_Target
+PS_OUT PS_main(VS_OUT input)
 {
 	PS_OUT output = (PS_OUT)0;
 

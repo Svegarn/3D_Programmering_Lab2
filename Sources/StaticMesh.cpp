@@ -21,54 +21,85 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 	
 	// The file is imported, so get rid of the importer.
 	importer->Destroy();
-	
-	// Print the nodes of the scene and their attributes recursively.
-	// Note that we are not printing the root node because it should
-	// not contain any attributes.
+
+	// Get mesh node
+	FbxMesh* mesh = nullptr;
+
 	std::vector<FbxNode*> dagNodes;
 	FbxNode* root = scene->GetRootNode();
-	if (root) {
-		for (int i = 0; i < root->GetChildCount(); i++) {
-			dagNodes.push_back(root->GetChild(i));
-		}
+	
+	if (strcmp(root->GetChild(0)->GetTypeName(), "Mesh") == 0)
+	{
+		mesh = root->GetChild(0)->GetMesh();
+	}
+	else
+	{
+		OutputDebugString(L"Non-mesh object found");
+		exit(-1);
 	}
 
-	std::string name = dagNodes[0]->GetName();
-	FbxMesh* mesh = dagNodes[0]->GetMesh();
-	FbxVector4* ctrlPoints = mesh->GetControlPoints();
-	FbxVector4* normals;
-	volatile int numVertices = mesh->GetControlPointsCount();
-	volatile int numPolygons = mesh->GetPolygonCount();
-	DataStructures::Vertex* vertexList = new DataStructures::Vertex[numVertices];
+	// Get transformation
+	FbxDouble3 rotation = root->GetChild(0)->LclRotation.Get();
+	FbxDouble3 scaling = root->GetChild(0)->LclScaling.Get();
+	FbxDouble3 translation = root->GetChild(0)->LclTranslation.Get();
 
+	DirectX::XMVECTOR rotationQuat = DirectX::XMQuaternionRotationRollPitchYaw(rotation[0], rotation[1], rotation[2]);
+
+	DirectX::XMMATRIX transformation = DirectX::XMMatrixTransformation(
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		DirectX::XMVectorSet(scaling[0], scaling[1], scaling[2], 1.0f),
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		rotationQuat,
+		DirectX::XMVectorSet(translation[0], translation[1], translation[2], 1.0f)
+		);
+
+	DirectX::XMStoreFloat4x4(&mWorldMatrix, transformation);
+	
+	// Get mesh data
+	FbxVector4* controlPoints = mesh->GetControlPoints();
+	FbxVector4 normal;
+	FbxVector2 uv;
+	bool unmapped = false;
+	
+	int numVertices = mesh->GetControlPointsCount();
+	int numPolygons = mesh->GetPolygonCount();
+	int polySize = 0;
+	int vertexIndex = 0;
+
+	vertexCount = mesh->GetPolygonVertexCount();
+	DataStructures::Vertex* vertexList = new DataStructures::Vertex[vertexCount];
+	int counter = 0;
 	for (UINT i = 0; i < numPolygons; i++) {
-		for (UINT j = 0; j < 3; j++) {
-			int vertexIndex = mesh->GetPolygonVertex(i, j);
-			vertexList[(i * 3) + j].position = {
-				(float)ctrlPoints[vertexIndex][0],
-				(float)ctrlPoints[vertexIndex][1],
-				(float)ctrlPoints[vertexIndex][2]
+		polySize = mesh->GetPolygonSize(i);
+
+		for (UINT j = 0; j < polySize; j++) {
+			vertexIndex = mesh->GetPolygonVertex(i, j);
+			
+			vertexList[counter].position = {
+				(float)controlPoints[vertexIndex][0],
+				(float)controlPoints[vertexIndex][1],
+				(float)controlPoints[vertexIndex][2]
 			};
+
+			mesh->GetPolygonVertexNormal(i, j, normal);
+			vertexList[counter].normal = {
+				(float)normal[0],
+				(float)normal[1],
+				(float)normal[2]
+			};
+
+			mesh->GetPolygonVertexUV(i, j, nullptr, uv, unmapped);
+			vertexList[counter].uv = {
+				(float)uv[0],
+				(float)uv[1]
+			};
+			counter++;
 		}
 	}
-
-	for (int i = 0; i < numVertices; i++) {
-		vertexList[i].position = {
-			(float)ctrlPoints[i][0],
-			(float)ctrlPoints[i][1],
-			(float)ctrlPoints[i][2]
-		};
-	}
-
-	std::string bla = name;
 
 	// Destroy the SDK manager and all the other objects it was handling.
 	manager->Destroy();
-}
-
-StaticMesh::StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix)
-{
-	DirectX::XMStoreFloat4x4(&mWorldMatrix, DirectX::XMMatrixTranspose(worldMatrix));
 
 	// World matrix cbuffer
 	D3D11_BUFFER_DESC matrixDesc;
@@ -96,10 +127,13 @@ StaticMesh::StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, Dir
 	D3D11_SUBRESOURCE_DATA vertexData;
 	vertexData.pSysMem = vertexList;
 	GraphicsManager::getInstance().getDevice()->CreateBuffer(&vertexDesc, &vertexData, &mVertexBuffer);
+
+	delete[] vertexList;
 }
 
-StaticMesh::StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX::XMMATRIX worldMatrix)
+StaticMesh::StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix)
 {
+	this->vertexCount = vertexCount;
 	DirectX::XMStoreFloat4x4(&mWorldMatrix, DirectX::XMMatrixTranspose(worldMatrix));
 
 	// World matrix cbuffer
@@ -123,7 +157,40 @@ StaticMesh::StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX:
 	memset(&vertexDesc, 0, sizeof(vertexDesc));
 	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexDesc.ByteWidth = vertexList.size() * sizeof(DataStructures::Vertex);
+	vertexDesc.ByteWidth = this->vertexCount * sizeof(DataStructures::Vertex);
+
+	D3D11_SUBRESOURCE_DATA vertexData;
+	vertexData.pSysMem = vertexList;
+	GraphicsManager::getInstance().getDevice()->CreateBuffer(&vertexDesc, &vertexData, &mVertexBuffer);
+}
+
+StaticMesh::StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX::XMMATRIX worldMatrix)
+{
+	this->vertexCount = vertexList.size();
+	DirectX::XMStoreFloat4x4(&mWorldMatrix, DirectX::XMMatrixTranspose(worldMatrix));
+
+	// World matrix cbuffer
+	D3D11_BUFFER_DESC matrixDesc;
+	matrixDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4);
+	matrixDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixDesc.MiscFlags = 0;
+	matrixDesc.StructureByteStride = 0;
+
+	D3D11_SUBRESOURCE_DATA matrixData;
+	matrixData.pSysMem = &mWorldMatrix;
+	matrixData.SysMemPitch = 0;
+	matrixData.SysMemSlicePitch = 0;
+
+	GraphicsManager::getInstance().getDevice()->CreateBuffer(&matrixDesc, &matrixData, &mWorldMatrixBuffer);
+
+	// Vertex buffer
+	D3D11_BUFFER_DESC vertexDesc;
+	memset(&vertexDesc, 0, sizeof(vertexDesc));
+	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexDesc.ByteWidth = this->vertexCount * sizeof(DataStructures::Vertex);
 
 	D3D11_SUBRESOURCE_DATA vertexData;
 	vertexData.pSysMem = vertexList.data();

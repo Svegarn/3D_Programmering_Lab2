@@ -23,6 +23,6 @@ float4 PS_main(VS_OUT input) : SV_Target
 		outColor = normalTex.Sample(textureSampler, input.Tex);
 	else
 		outColor = materialTex.Sample(textureSampler, input.Tex);
-
+	outColor = normalTex.Sample(textureSampler, input.Tex);
 	return outColor;
 };
