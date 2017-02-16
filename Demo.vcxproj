@@ -117,6 +117,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Resources\DDSTextureLoader\DDSTextureLoader.cpp" />
+    <ClCompile Include="Sources\Camera.cpp" />
     <ClCompile Include="Sources\ContentManager.cpp" />
     <ClCompile Include="Sources\GraphicsManager.cpp" />
     <ClCompile Include="Sources\main.cpp" />
@@ -125,6 +126,7 @@
   <ItemGroup>
     <ClInclude Include="Resources\bth_image.h" />
     <ClInclude Include="Resources\DDSTextureLoader\DDSTextureLoader.h" />
+    <ClInclude Include="Sources\Camera.h" />
     <ClInclude Include="Sources\ContentManager.h" />
     <ClInclude Include="Sources\DataStructures.h" />
     <ClInclude Include="Sources\GraphicsManager.h" />

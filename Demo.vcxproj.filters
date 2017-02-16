@@ -45,6 +45,9 @@
     <ClCompile Include="Resources\DDSTextureLoader\DDSTextureLoader.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\GraphicsManager.h">
@@ -64,6 +67,9 @@
     </ClInclude>
     <ClInclude Include="Resources\DDSTextureLoader\DDSTextureLoader.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Camera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

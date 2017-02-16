@@ -28,9 +28,7 @@ private:
 
 	DataStructures::CameraCbuffer mCameraData;
 	float matAngle = 0.0f;
-	float moveSpeed = 0.01f;
-	DirectX::XMFLOAT4 mEyePos = { 0.0f, 0.0f, -2.0f, 1.0f };
-	DirectX::XMFLOAT4 mLookAt = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 
 	float clearColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
 	UINT32 vertexSize = sizeof(DataStructures::Vertex);
@@ -96,8 +94,6 @@ private:
 	void SetViewport();
 	void SetRasterizerState();
 	void ResetRTV_SRV();
-	void CreateCameraBuffer();
-	void UpdateCameraBuffer();
 
 public:
 	static GraphicsManager& getInstance()
@@ -112,17 +108,17 @@ public:
 	void Update(float deltaTime, float elapsedTime);
 	void Render();
 
-	HRESULT CreateDirect3DContext(HWND wndHandle, UINT width, UINT height);
+	HRESULT initialize(HWND wndHandle, UINT width, UINT height);
 	void CreateShadowShaders();
 	void CreateLab2Shaders();
 	void CreateBasicShaders();
 	void CreateDeferredShaders();
+	void CreateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection, DirectX::XMFLOAT3* eyePos);
+	void UpdateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT3* eyePos);
 
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
 	IDXGISwapChain* getSwapChain();
-
-	void addToCamPos(float x = 0.0f, float y = 0.0f, float z = 0.0f);
 };
 
 #endif

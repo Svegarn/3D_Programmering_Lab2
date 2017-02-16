@@ -1,27 +1,8 @@
 #include "GraphicsManager.h"
 
 void GraphicsManager::Update(float deltaTime, float elapsedTime) {
-	UpdateCameraBuffer();
-
 	this->deltaTime = deltaTime;
 	this->elapsedTime = elapsedTime;
-
-	if (GetAsyncKeyState(VK_NUMPAD1)) {
-		GraphicsManager::getInstance().CreateLab2Shaders();
-		Sleep(100);
-	}
-	if (GetAsyncKeyState(0x57)) // Forward
-		GraphicsManager::getInstance().addToCamPos(0.0f, 0.0f, moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x53)) // Backwards
-		GraphicsManager::getInstance().addToCamPos(0.0f, 0.0f, -moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x44)) // Strafe right
-		GraphicsManager::getInstance().addToCamPos(moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x41)) // Strafe left
-		GraphicsManager::getInstance().addToCamPos(-moveSpeed * deltaTime);
-	if (GetAsyncKeyState(VK_SPACE)) // Up
-		GraphicsManager::getInstance().addToCamPos(0.0f, moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x43)) // Down
-		GraphicsManager::getInstance().addToCamPos(0.0f, -moveSpeed * deltaTime);
 
 	// Cube rotation
 	ContentManager::getInstance().getStaticMeshes()[0]->setWorldMatrix(
@@ -116,7 +97,7 @@ void GraphicsManager::Render()
 	mSwapChain->Present(0, 0);
 }
 
-HRESULT GraphicsManager::CreateDirect3DContext(HWND wndHandle, UINT width, UINT height)
+HRESULT GraphicsManager::initialize(HWND wndHandle, UINT width, UINT height)
 {
 	mWindowWidth = width;
 	mWindowHeight = height;
@@ -167,7 +148,6 @@ HRESULT GraphicsManager::CreateDirect3DContext(HWND wndHandle, UINT width, UINT 
 	CreateLab2Shaders();
 	CreateBasicShaders();
 	CreateDeferredShaders();
-	CreateCameraBuffer();
 	SetRasterizerState();
 	CreateDepthBuffer();
 	CreateGBuffers();
@@ -606,33 +586,16 @@ IDXGISwapChain* GraphicsManager::getSwapChain() {
 	return mSwapChain;
 }
 
-void GraphicsManager::CreateCameraBuffer()
+void GraphicsManager::CreateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection, DirectX::XMFLOAT3* eyePos)
 {
-	// View
-	XMStoreFloat4x4(
-		&mCameraData.view,
-		DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtLH(
-			DirectX::XMLoadFloat4(&mEyePos),
-			DirectX::XMLoadFloat4(&mLookAt),
-			DirectX::XMLoadFloat4(&DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f))
-			)
-			));
-
-	// Projection
-	XMStoreFloat4x4(
-		&mCameraData.projection,
-		DirectX::XMMatrixTranspose(DirectX::XMMatrixPerspectiveFovLH(
-			DirectX::XM_PI * 0.45f,
-			(float)mWindowWidth / (float)mWindowHeight,
-			0.1f,
-			200.0f
-			)
-			));
+	DirectX::XMStoreFloat4x4(&mCameraData.view, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(view)));
+	DirectX::XMStoreFloat4x4(&mCameraData.projection, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(projection)));
 
 	// DT
 	mCameraData.DT = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 	// Eye position
-	mCameraData.eyePos = mEyePos;
+	mCameraData.eyePos = DirectX::XMFLOAT4(eyePos->x, eyePos->y, eyePos->z, 1.0f);
 
 	D3D11_BUFFER_DESC desc;
 	desc.ByteWidth = sizeof(DataStructures::CameraCbuffer);
@@ -650,21 +613,14 @@ void GraphicsManager::CreateCameraBuffer()
 	HRESULT hr = mDevice->CreateBuffer(&desc, &data, &mCameraCbuffer);
 }
 
-void GraphicsManager::UpdateCameraBuffer()
+void GraphicsManager::UpdateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT3* eyePos)
 {
 	//View
-	XMStoreFloat4x4(
-		&mCameraData.view,
-		XMMatrixTranspose(DirectX::XMMatrixLookAtLH(
-			XMLoadFloat4(&mEyePos),
-			XMLoadFloat4(&mLookAt),
-			XMLoadFloat4(&DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f))
-			)
-			));
+	DirectX::XMStoreFloat4x4(&mCameraData.view, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(view)));
 
 	// DT
 	mCameraData.DT = { deltaTime, elapsedTime, 0.0f, 0.0f };
-	mCameraData.eyePos = mEyePos;
+	mCameraData.eyePos = DirectX::XMFLOAT4(eyePos->x, eyePos->y, eyePos->z, 1.0f);
 
 	D3D11_MAPPED_SUBRESOURCE subresource;
 	ZeroMemory(&subresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
@@ -672,17 +628,6 @@ void GraphicsManager::UpdateCameraBuffer()
 	mDeviceContext->Map(mCameraCbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
 	memcpy((DataStructures::CameraCbuffer*)subresource.pData, &mCameraData, sizeof(DataStructures::CameraCbuffer));
 	mDeviceContext->Unmap(mCameraCbuffer, 0);
-}
-
-void GraphicsManager::addToCamPos(float x, float y, float z)
-{
-	mEyePos.x += x;
-	mEyePos.y += y;
-	mEyePos.z += z;
-
-	mLookAt.x += x;
-	mLookAt.y += y;
-	mLookAt.z += z;
 }
 
 GraphicsManager::~GraphicsManager()
