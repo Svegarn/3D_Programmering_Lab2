@@ -19,23 +19,23 @@ void Camera::Initialize(UINT windowWidth, UINT windowHeight)
 
 void Camera::Update(float deltaTime)
 {
-	if (GetAsyncKeyState(0x57)) // Forward
+	if (GetAsyncKeyState(0x57)) // W | Forward
 		Walk(moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x53)) // Backwards
+	if (GetAsyncKeyState(0x53)) // S | Backwards
 		Walk(-moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x44)) // Strafe right
+	if (GetAsyncKeyState(0x44)) // D | Strafe right
 		Strafe(moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x41)) // Strafe left
+	if (GetAsyncKeyState(0x41)) // A | Strafe left
 		Strafe(-moveSpeed * deltaTime);
-	if (GetAsyncKeyState(VK_SPACE)) // Up
+	if (GetAsyncKeyState(VK_SPACE)) // Space | Up
 		Levitate(moveSpeed * deltaTime);
-	if (GetAsyncKeyState(0x43)) // Down
+	if (GetAsyncKeyState(0x43)) // C | Down
 		Levitate(-moveSpeed * deltaTime);
 
-	if (GetAsyncKeyState(VK_LSHIFT)) // Sprint
-		moveSpeed = 0.5f;
+	if (GetAsyncKeyState(VK_LSHIFT)) // Shift | Sprint
+		moveSpeed = sprintSpeed;
 	else
-		moveSpeed = 0.01f;
+		moveSpeed = baseSpeed;
 
 	mRotX = 0.0f;
 	mRotY = 0.0f;

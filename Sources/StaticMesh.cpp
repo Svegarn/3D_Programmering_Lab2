@@ -67,6 +67,9 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 	int polySize = 0;
 	int vertexIndex = 0;
 
+	FbxLayerElementArrayTemplate<FbxVector2>* uvArray;
+	mesh->GetTextureUV(&uvArray);
+
 	vertexCount = mesh->GetPolygonVertexCount();
 	DataStructures::Vertex* vertexList = new DataStructures::Vertex[vertexCount];
 	int counter = 0;
@@ -89,10 +92,9 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 				(float)normal[2]
 			};
 
-			mesh->GetPolygonVertexUV(i, j, nullptr, uv, unmapped);
 			vertexList[counter].uv = {
-				(float)uv[0],
-				(float)uv[1]
+				(float)uvArray->GetAt(mesh->GetTextureUVIndex(i, j))[0],
+				(float)uvArray->GetAt(mesh->GetTextureUVIndex(i, j))[1]
 			};
 			counter++;
 		}

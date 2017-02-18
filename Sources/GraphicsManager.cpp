@@ -25,7 +25,7 @@ void GraphicsManager::Render()
 
 	// ######################################################### SPINNING BOX
 
-	mDeviceContext->OMSetRenderTargets(1, &mBackbufferRTV, mDepthBuffer_DSV);
+	mDeviceContext->OMSetRenderTargets(1, &mAlbedo_RTV, mDepthBuffer_DSV);
 
 	mDeviceContext->VSSetShader(mLab2VertexShader, nullptr, 0);
 	mDeviceContext->HSSetShader(nullptr, nullptr, 0);

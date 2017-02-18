@@ -15,14 +15,26 @@ float4 PS_main(VS_OUT input) : SV_Target
 {
 	float4 outColor = float4(1.0f, 1.0f, 0.0f, 1.0f);
 
-	if (input.Tex.x < 0.5f && input.Tex.y < 0.5f)
-		outColor = shadowTex.Sample(textureSampler, input.Tex);
-	else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
-		outColor = albedoTex.Sample(textureSampler, input.Tex);
-	else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
-		outColor = normalTex.Sample(textureSampler, input.Tex);
+	// Blits
+	//if (input.Tex.x < 0.5f && input.Tex.y < 0.5f)
+	//	outColor = shadowTex.Sample(textureSampler, input.Tex);
+	//else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
+	//	outColor = albedoTex.Sample(textureSampler, input.Tex);
+	//else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
+	//	outColor = normalTex.Sample(textureSampler, input.Tex);
+	//else
+	//	outColor = materialTex.Sample(textureSampler, input.Tex);
+
+	// Temp crosshair
+	float tempX = (0.25f - input.Tex.x) + 0.25f;
+	float tempY = (0.25f - input.Tex.y) + 0.25f;
+
+	float rad = (tempX * tempX) + (tempY * tempY) * 0.35f;
+
+	if (rad < 0.000005f)
+		outColor = float4(0.9f, 0.0f, 0.0f, 1.0f);
 	else
-		outColor = materialTex.Sample(textureSampler, input.Tex);
-	outColor = normalTex.Sample(textureSampler, input.Tex);
+		outColor = albedoTex.Sample(textureSampler, input.Tex);
+
 	return outColor;
 };

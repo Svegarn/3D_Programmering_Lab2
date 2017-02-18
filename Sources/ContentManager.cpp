@@ -36,51 +36,17 @@ void ContentManager::initializeContent()
 	StaticMesh* cube = new StaticMesh(vertices, 6);
 	staticMeshes.push_back(cube);
 
-	// Floor
-	DataStructures::Vertex floorVertices[6] = {
-		DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(0.0f, 1.0f),
+	// Terrain
+	StaticMesh* terrain = new StaticMesh("Assets/terrain.fbx");
 
-		DirectX::XMFLOAT3(-0.5f, 0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(0.0f, 0.0f),
+	terrain->setWorldMatrix(DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f));
 
-		DirectX::XMFLOAT3(0.5f, 0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(1.0f, 0.0f),
-
-		DirectX::XMFLOAT3(-0.5f, -0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(0.0f, 1.0f),
-
-		DirectX::XMFLOAT3(0.5f, 0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(1.0f, 0.0f),
-
-		DirectX::XMFLOAT3(0.5f, -0.5f, 0.0f),
-		DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f),
-		DirectX::XMFLOAT2(1.0f, 1.0f)
-	};
-
-	StaticMesh* floor = new StaticMesh(
-		floorVertices,
-		6,
-		DirectX::XMMatrixMultiply(
-			DirectX::XMMatrixMultiply(
-				DirectX::XMMatrixRotationAxis(DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), DirectX::XMConvertToRadians(90.0f)),
-				DirectX::XMMatrixScaling(40.0f, 1.0f, 40.0f)),
-			DirectX::XMMatrixTranslation(0.0f, -2.0f, 0.0f)));
-
-	floor->setMaterial(
+	terrain->setMaterial(
 		DataStructures::LambertData(),
 		L"Assets/code.dds"
 		);
 
-	staticMeshes.push_back(floor);
-
-	StaticMesh* sphere = new StaticMesh("Assets/terrain.fbx");
-	staticMeshes.push_back(sphere);
+	staticMeshes.push_back(terrain);
 }
 
 ContentManager::~ContentManager()
