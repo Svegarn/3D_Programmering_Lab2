@@ -20,6 +20,7 @@ void GraphicsManager::Render()
 	mDeviceContext->ClearRenderTargetView(mAlbedo_RTV, clearColor);
 	mDeviceContext->ClearRenderTargetView(mNormal_RTV, clearColor);
 	mDeviceContext->ClearRenderTargetView(mMaterial_RTV, clearColor);
+	mDeviceContext->ClearRenderTargetView(mGrid_RTV, clearColor);
 
 	mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -58,6 +59,9 @@ void GraphicsManager::Render()
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mBasicPixelShader, nullptr, 0);
 
+	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mDeviceContext->IASetInputLayout(mBasicVertexLayout);
+
 	for (UINT i = 1; i < ContentManager::getInstance().getStaticMeshes().size(); i++)
 	{
 		mDeviceContext->PSSetShaderResources(0, 1, &ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->srv);
@@ -67,9 +71,32 @@ void GraphicsManager::Render()
 
 		mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[i]->getVertexBuffer(), &vertexSize, &offset);
 
+		mDeviceContext->Draw(ContentManager::getInstance().getStaticMeshes()[i]->vertexCount, 0);
+	}
+
+	// ######################################################### GRID PASS
+
+	if (showGrid == true)
+	{
+		mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		mDeviceContext->OMSetRenderTargets(1, &mGrid_RTV, mDepthBuffer_DSV);
+
+		mDeviceContext->VSSetShader(mGridVertexShader, nullptr, 0);
+		//mDeviceContext->GSSetShader(mGridGeometryShader, nullptr, 0);
+		mDeviceContext->PSSetShader(mGridPixelShader, nullptr, 0);
+
+		mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 		mDeviceContext->IASetInputLayout(mBasicVertexLayout);
 
-		mDeviceContext->Draw(ContentManager::getInstance().getStaticMeshes()[i]->vertexCount, 0);
+		for (UINT i = 1; i < ContentManager::getInstance().getStaticMeshes().size(); i++)
+		{
+			mDeviceContext->VSSetConstantBuffers(0, 1, &mCameraCbuffer);
+			mDeviceContext->VSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[i]->getWorldMatrixBuffer());
+
+			mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[i]->getVertexBuffer(), &vertexSize, &offset);
+
+			mDeviceContext->Draw(ContentManager::getInstance().getStaticMeshes()[i]->vertexCount, 0);
+		}
 	}
 
 	// #########################################################
@@ -80,15 +107,15 @@ void GraphicsManager::Render()
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mDeferredPixelShader, nullptr, 0);
 
-	ID3D11ShaderResourceView* sources[4] = { mShadow_SRV, mAlbedo_SRV, mNormal_SRV, mMaterial_SRV };
+	ID3D11ShaderResourceView* sources[5] = { mShadow_SRV, mAlbedo_SRV, mNormal_SRV, mMaterial_SRV, mGrid_SRV };
 
-	mDeviceContext->PSSetShaderResources(0, 4, sources);
+	mDeviceContext->PSSetShaderResources(0, 5, sources);
 
-	mDeviceContext->IASetInputLayout(NULL);
 	mDeviceContext->IASetVertexBuffers(0, 0, NULL, 0, 0);
 	mDeviceContext->IASetIndexBuffer(NULL, (DXGI_FORMAT)0, 0);
 
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mDeviceContext->IASetInputLayout(NULL);
 
 	mDeviceContext->Draw(3, 0);
 
@@ -144,10 +171,7 @@ HRESULT GraphicsManager::initialize(HWND wndHandle, UINT width, UINT height)
 	}
 
 	SetViewport();
-	CreateShadowShaders();
-	CreateLab2Shaders();
-	CreateBasicShaders();
-	CreateDeferredShaders();
+	CreateShaders();
 	SetRasterizerState();
 	CreateDepthBuffer();
 	CreateGBuffers();
@@ -159,14 +183,22 @@ HRESULT GraphicsManager::initialize(HWND wndHandle, UINT width, UINT height)
 	return hr;
 }
 
-void GraphicsManager::CreateShadowShaders() {
+void GraphicsManager::CreateShaders() {
+	ID3DBlob* pVS = nullptr;
+	ID3DBlob* pGS = nullptr;
+	ID3DBlob* pPS = nullptr;
+	ID3DBlob* errorblob = nullptr;
+	HRESULT hr = S_OK;
+
+	//##################################################################################################################################
+	//#############################################		      Shadow			########################################################
+	//##################################################################################################################################
+
 	//create vertex shader
 	if (mShadowVertexShader != nullptr)
 		mShadowVertexShader->Release();
 
-	ID3DBlob* pVS = nullptr;
-	ID3DBlob* errorblob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		L"Shaders/Shadow/Shadow_VS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
@@ -198,17 +230,16 @@ void GraphicsManager::CreateShadowShaders() {
 		// we do not need anymore this COM object, so we release it.
 	}
 	pVS->Release();
-}
 
-void GraphicsManager::CreateLab2Shaders()
-{
+	//##################################################################################################################################
+	//#############################################				Lab2			########################################################
+	//##################################################################################################################################
+	
 	//create vertex shader
 	if (mLab2VertexShader != nullptr)
 		mLab2VertexShader->Release();
 
-	ID3DBlob* pVS = nullptr;
-	ID3DBlob* errorblob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		L"Shaders/Lab2Shaders/Lab2_VS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
@@ -245,7 +276,6 @@ void GraphicsManager::CreateLab2Shaders()
 	if (mLab2GeometryShader != nullptr)
 		mLab2GeometryShader->Release();
 
-	ID3DBlob* pGS = nullptr;
 	D3DCompileFromFile(
 		L"Shaders/Lab2Shaders/Lab2_GS.hlsl",
 		nullptr,
@@ -265,7 +295,6 @@ void GraphicsManager::CreateLab2Shaders()
 	if (mLab2PixelShader != nullptr)
 		mLab2PixelShader->Release();
 
-	ID3DBlob* pPS = nullptr;
 	D3DCompileFromFile(
 		L"Shaders/Lab2Shaders/Lab2_PS.hlsl", // filename
 		nullptr,		// optional macros
@@ -283,17 +312,16 @@ void GraphicsManager::CreateLab2Shaders()
 	mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mLab2PixelShader);
 	// we do not need anymore this COM object, so we release it.
 	pPS->Release();
-}
 
-void GraphicsManager::CreateBasicShaders()
-{
+	//##################################################################################################################################
+	//#############################################				Basic			########################################################
+	//##################################################################################################################################
+
 	//create vertex shader
 	if (mBasicVertexShader != nullptr)
 		mBasicVertexShader->Release();
 
-	ID3DBlob* pVS = nullptr;
-	ID3DBlob* errorblob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		L"Shaders/BasicShaders/Basic_VS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
@@ -330,7 +358,6 @@ void GraphicsManager::CreateBasicShaders()
 	if (mBasicPixelShader != nullptr)
 		mBasicPixelShader->Release();
 
-	ID3DBlob* pPS = nullptr;
 	D3DCompileFromFile(
 		L"Shaders/BasicShaders/Basic_PS.hlsl", // filename
 		nullptr,		// optional macros
@@ -348,17 +375,16 @@ void GraphicsManager::CreateBasicShaders()
 	mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mBasicPixelShader);
 	// we do not need anymore this COM object, so we release it.
 	pPS->Release();
-}
 
-void GraphicsManager::CreateDeferredShaders()
-{
+	//##################################################################################################################################
+	//#############################################			  Deferred			########################################################
+	//##################################################################################################################################
+
 	//create vertex shader
 	if (mDeferredVertexShader != nullptr)
 		mDeferredVertexShader->Release();
 
-	ID3DBlob* pVS = nullptr;
-	ID3DBlob* errorblob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		L"Shaders/DeferredShaders/Deferred_VS.hlsl", // filename
 		nullptr,		// optional macros
 		nullptr,		// optional include files
@@ -395,7 +421,6 @@ void GraphicsManager::CreateDeferredShaders()
 	if (mDeferredPixelShader != nullptr)
 		mDeferredPixelShader->Release();
 
-	ID3DBlob* pPS = nullptr;
 	D3DCompileFromFile(
 		L"Shaders/DeferredShaders/Deferred_PS.hlsl", // filename
 		nullptr,		// optional macros
@@ -411,6 +436,77 @@ void GraphicsManager::CreateDeferredShaders()
 		);
 
 	mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mDeferredPixelShader);
+	// we do not need anymore this COM object, so we release it.
+	pPS->Release();
+
+	//##################################################################################################################################
+	//#############################################				Grid			########################################################
+	//##################################################################################################################################
+
+	//create vertex shader
+	if (mGridVertexShader != nullptr)
+		mGridVertexShader->Release();
+
+	hr = D3DCompileFromFile(
+		L"Shaders/GridShaders/Grid_VS.hlsl", // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		"VS_main",		// entry point
+		"vs_5_0",		// shader model (target)
+		0,				// shader compile options			// here DEBUGGING OPTIONS
+		0,				// effect compile options
+		&pVS,			// double pointer to ID3DBlob		
+		&errorblob			// pointer for Error Blob messages.
+							// how to use the Error blob, see here
+							// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+		);
+
+	if (errorblob) {
+		OutputDebugStringA((char*)errorblob->GetBufferPointer());
+		errorblob->Release();
+	}
+
+	hr = mDevice->CreateVertexShader(pVS->GetBufferPointer(), pVS->GetBufferSize(), nullptr, &mGridVertexShader);
+	pVS->Release();
+
+	//create geometry shader
+	if (mGridGeometryShader != nullptr)
+		mGridGeometryShader->Release();
+
+	D3DCompileFromFile(
+		L"Shaders/GridShaders/Grid_GS.hlsl",
+		nullptr,
+		nullptr,
+		"GS_main",
+		"gs_5_0",
+		0,
+		0,
+		&pGS,
+		nullptr
+		);
+
+	mDevice->CreateGeometryShader(pGS->GetBufferPointer(), pGS->GetBufferSize(), nullptr, &mGridGeometryShader);
+	pGS->Release();
+
+	//create pixel shader
+	if (mGridPixelShader != nullptr)
+		mGridPixelShader->Release();
+
+	hr = D3DCompileFromFile(
+		L"Shaders/GridShaders/Grid_PS.hlsl", // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		"PS_main",		// entry point
+		"ps_5_0",		// shader model (target)
+		0,				// shader compile options
+		0,				// effect compile options
+		&pPS,			// double pointer to ID3DBlob		
+		nullptr			// pointer for Error Blob messages.
+						// how to use the Error blob, see here
+						// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+		);
+
+	hr = mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mGridPixelShader);
 	// we do not need anymore this COM object, so we release it.
 	pPS->Release();
 }
@@ -479,14 +575,17 @@ void GraphicsManager::CreateGBuffers() {
 	HRESULT hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mAlbedo_T2D);
 	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mNormal_T2D);
 	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mMaterial_T2D);
+	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mGrid_T2D);
 
 	hr = mDevice->CreateShaderResourceView(mAlbedo_T2D, &srvDesc, &mAlbedo_SRV);
 	hr = mDevice->CreateShaderResourceView(mNormal_T2D, &srvDesc, &mNormal_SRV);
 	hr = mDevice->CreateShaderResourceView(mMaterial_T2D, &srvDesc, &mMaterial_SRV);
+	hr = mDevice->CreateShaderResourceView(mGrid_T2D, &srvDesc, &mGrid_SRV);
 
 	hr = mDevice->CreateRenderTargetView(mAlbedo_T2D, &rtvDesc, &mAlbedo_RTV);
 	hr = mDevice->CreateRenderTargetView(mNormal_T2D, &rtvDesc, &mNormal_RTV);
 	hr = mDevice->CreateRenderTargetView(mMaterial_T2D, &rtvDesc, &mMaterial_RTV);
+	hr = mDevice->CreateRenderTargetView(mGrid_T2D, &rtvDesc, &mGrid_RTV);
 }
 
 void GraphicsManager::CreateShaderResources()
@@ -643,14 +742,17 @@ GraphicsManager::~GraphicsManager()
 	mAlbedo_SRV->Release();
 	mNormal_SRV->Release();
 	mMaterial_SRV->Release();
+	mGrid_SRV->Release();
 
 	mAlbedo_RTV->Release();
 	mNormal_RTV->Release();
 	mMaterial_RTV->Release();
+	mGrid_RTV->Release();
 
 	mAlbedo_T2D->Release();
 	mNormal_T2D->Release();
 	mMaterial_T2D->Release();
+	mGrid_T2D->Release();
 
 	mCameraCbuffer->Release();
 	mLinearClampSampler->Release();
@@ -670,6 +772,9 @@ GraphicsManager::~GraphicsManager()
 	mDeferredVertexLayout->Release();
 	mDeferredVertexShader->Release();
 	mDeferredPixelShader->Release();
+
+	mGridVertexShader->Release();
+	mGridPixelShader->Release();
 
 	mBackbufferRTV->Release();
 	mRasterState->Release();

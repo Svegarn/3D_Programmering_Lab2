@@ -39,7 +39,7 @@ void ContentManager::initializeContent()
 	// Terrain
 	StaticMesh* terrain = new StaticMesh("Assets/terrain.fbx");
 
-	terrain->setWorldMatrix(DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f));
+	terrain->setWorldMatrix(DirectX::XMMatrixScaling(2400.0f, 2400.0f, 2400.0f));
 
 	terrain->setMaterial(
 		DataStructures::LambertData(),

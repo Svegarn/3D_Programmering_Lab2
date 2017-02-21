@@ -29,8 +29,7 @@ private:
 	DataStructures::CameraCbuffer mCameraData;
 	float matAngle = 0.0f;
 
-
-	float clearColor[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	UINT32 vertexSize = sizeof(DataStructures::Vertex);
 	UINT32 offset = 0;
 
@@ -47,14 +46,17 @@ private:
 	ID3D11Texture2D* mAlbedo_T2D = nullptr;
 	ID3D11Texture2D* mNormal_T2D = nullptr;
 	ID3D11Texture2D* mMaterial_T2D = nullptr;
+	ID3D11Texture2D* mGrid_T2D = nullptr;
 
 	ID3D11ShaderResourceView* mAlbedo_SRV = nullptr;
 	ID3D11ShaderResourceView* mNormal_SRV = nullptr;
 	ID3D11ShaderResourceView* mMaterial_SRV = nullptr;
+	ID3D11ShaderResourceView* mGrid_SRV = nullptr;
 
 	ID3D11RenderTargetView* mAlbedo_RTV = nullptr;
 	ID3D11RenderTargetView* mNormal_RTV = nullptr;
 	ID3D11RenderTargetView* mMaterial_RTV = nullptr;
+	ID3D11RenderTargetView* mGrid_RTV = nullptr;
 
 	// Resources
 	ID3D11ShaderResourceView* mBTH_SRV = nullptr;
@@ -83,6 +85,10 @@ private:
 	ID3D11VertexShader* mDeferredVertexShader = nullptr;
 	ID3D11PixelShader* mDeferredPixelShader = nullptr;
 
+	ID3D11VertexShader* mGridVertexShader = nullptr;
+	ID3D11GeometryShader* mGridGeometryShader = nullptr;
+	ID3D11PixelShader* mGridPixelShader = nullptr;
+
 	ID3D11DepthStencilView* tempDSV = NULL;
 	ID3D11RenderTargetView* tempRTV[4] = { NULL };
 	ID3D11ShaderResourceView* tempSRV[8] = { NULL };
@@ -109,16 +115,18 @@ public:
 	void Render();
 
 	HRESULT initialize(HWND wndHandle, UINT width, UINT height);
-	void CreateShadowShaders();
-	void CreateLab2Shaders();
-	void CreateBasicShaders();
-	void CreateDeferredShaders();
+	
 	void CreateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT4X4* projection, DirectX::XMFLOAT3* eyePos);
 	void UpdateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMFLOAT3* eyePos);
 
 	ID3D11Device* getDevice();
 	ID3D11DeviceContext* getDeviceContext();
 	IDXGISwapChain* getSwapChain();
+
+	// DEBUG
+	bool showGrid = false;
+
+	void CreateShaders();
 };
 
 #endif

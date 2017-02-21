@@ -50,7 +50,7 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
 		DirectX::XMVectorSet(scaling[0], scaling[1], scaling[2], 1.0f),
 		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-		rotationQuat,
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), //rotationQuat,
 		DirectX::XMVectorSet(translation[0], translation[1], translation[2], 1.0f)
 		);
 
@@ -82,19 +82,19 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 			vertexList[counter].position = {
 				(float)controlPoints[vertexIndex][0],
 				(float)controlPoints[vertexIndex][1],
-				(float)controlPoints[vertexIndex][2]
+				-(float)controlPoints[vertexIndex][2]
 			};
 
 			mesh->GetPolygonVertexNormal(i, j, normal);
 			vertexList[counter].normal = {
 				(float)normal[0],
 				(float)normal[1],
-				(float)normal[2]
+				-(float)normal[2]
 			};
 
 			vertexList[counter].uv = {
 				(float)uvArray->GetAt(mesh->GetTextureUVIndex(i, j))[0],
-				(float)uvArray->GetAt(mesh->GetTextureUVIndex(i, j))[1]
+				1.0f - (float)uvArray->GetAt(mesh->GetTextureUVIndex(i, j))[1]
 			};
 			counter++;
 		}

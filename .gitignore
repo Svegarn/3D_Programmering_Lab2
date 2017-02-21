@@ -48,3 +48,6 @@ Temporary Items
 *.log
 x64/Debug/Demo.exe
 *.suo
+D3DDemo.sdf
+*.sdf
+*.obj

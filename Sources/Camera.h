@@ -23,8 +23,8 @@ private:
 	DirectX::XMFLOAT3 mLook = { -0.35f, -0.67f, -0.65f };
 	DirectX::XMFLOAT3 mPosition = { 930.0f, 1540.0f, 1726.0f };
 
-	float moveSpeed = 0.01f;
-	float baseSpeed = 0.01f;
+	float moveSpeed = 0.03f;
+	float baseSpeed = 0.03f;
 	float sprintSpeed = 2.0f;
 
 	POINT mLastMousePos;

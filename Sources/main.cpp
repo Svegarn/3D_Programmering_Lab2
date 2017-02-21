@@ -152,17 +152,22 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 			PostQuitMessage(0);
 			break;
 		case VK_NUMPAD1:
-			GraphicsManager::getInstance().CreateLab2Shaders();
-			GraphicsManager::getInstance().CreateBasicShaders();
-			GraphicsManager::getInstance().CreateDeferredShaders();
+			GraphicsManager::getInstance().CreateShaders();
 			Sleep(100);
-			return 0;
+			break;
+		case VK_NUMPAD2:
+			GraphicsManager::getInstance().showGrid = !GraphicsManager::getInstance().showGrid;
+			Sleep(100);
+			break;
 		default:
-			return 0;
+			break;
 		}
+		break;
 	case WM_MOUSEMOVE:
 		Camera::getInstance().MouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), deltaTime);
-		return 0;
+		break;
+	default:
+		break;
 	}
 		
 	return DefWindowProc(hWnd, message, wParam, lParam);

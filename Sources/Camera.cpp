@@ -134,13 +134,13 @@ void Camera::MouseMove(int x, int y, float deltaTime)
 	{
 		if (x != mLastMousePos.x)
 		{
-			mRotX += (mouseSensitivity * DirectX::XMConvertToRadians(x - mLastMousePos.x)) * deltaTime;
+			mRotX += ((mouseSensitivity * deltaTime) * DirectX::XMConvertToRadians(x - mLastMousePos.x));
 			RotateY(mRotX);
 		}
 	
 		if (y != mLastMousePos.y)
 		{
-			mRotY += (mouseSensitivity * DirectX::XMConvertToRadians(y - mLastMousePos.y)) * deltaTime;
+			mRotY += ((mouseSensitivity * deltaTime) * DirectX::XMConvertToRadians(y - mLastMousePos.y));
 			Pitch(mRotY);
 		}
 	

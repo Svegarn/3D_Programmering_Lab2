@@ -28,6 +28,9 @@
     <Filter Include="Shaders\Shadow">
       <UniqueIdentifier>{b2ed9734-c528-411a-9cfd-f50377340d26}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Grid">
+      <UniqueIdentifier>{f2a3f470-e2bc-499b-849e-2b12f2276dac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\GraphicsManager.cpp">
@@ -96,6 +99,15 @@
     </FxCompile>
     <FxCompile Include="Shaders\Shadow\Shadow_VS.hlsl">
       <Filter>Shaders\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\GridShaders\Grid_PS.hlsl">
+      <Filter>Shaders\Grid</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\GridShaders\Grid_VS.hlsl">
+      <Filter>Shaders\Grid</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\GridShaders\Grid_GS.hlsl">
+      <Filter>Shaders\Grid</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -1,12 +1,12 @@
-﻿Build started 2017-02-18 02:55:38.
-     1>Project "C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" on node 2 (Build target(s)).
+﻿Build started 21/2/2017 13:58:42.
+     1>Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" on node 2 (Build target(s)).
      1>FxCompile:
-         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"PS_main" /T ps_5_0 /Fo "C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Deferred_PS.cso" Shaders\DeferredShaders\Deferred_PS.hlsl 
-         compilation object save succeeded; see C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Deferred_PS.cso
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"PS_main" /T ps_5_0 /Fo "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Grid_PS.cso" Shaders\GridShaders\Grid_PS.hlsl 
+         compilation object save succeeded; see C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Grid_PS.cso
        Link:
-         Demo.vcxproj -> C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.exe
-     1>Done Building Project "C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" (Build target(s)).
+         Demo.vcxproj -> C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.exe
+     1>Done Building Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.08
+Time Elapsed 00:00:00.16
