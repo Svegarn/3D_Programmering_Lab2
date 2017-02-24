@@ -5,6 +5,8 @@ cbuffer matrixBuffer: register(b0)
 {
 	float4x4 view;
 	float4x4 projection;
+	float4x4 viewInverse;
+	float4x4 projectionInverse;
 	float4 dt;
 	float4 eyePos;
 }
@@ -41,6 +43,5 @@ float4 PS_main(GS_OUT input) : SV_Target
 
 	outColor = float4(diffuseLight + specularLight, 1.0f);
 
-	//return float4 (input.wPos.xyz, 1.0f);
 	return outColor;
 }

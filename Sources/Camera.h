@@ -21,11 +21,12 @@ private:
 	DirectX::XMFLOAT3 mRight = { -0.88f, 0.0f, 0.47f };
 	DirectX::XMFLOAT3 mUp = { -0.31f, 0.74f, -0.59f };
 	DirectX::XMFLOAT3 mLook = { -0.35f, -0.67f, -0.65f };
-	DirectX::XMFLOAT3 mPosition = { 930.0f, 1540.0f, 1726.0f };
+	//DirectX::XMFLOAT3 mPosition = { 930.0f, 1540.0f, 1726.0f };
+	DirectX::XMFLOAT3 mPosition = { 1001.0f, 1000.0f, 0.0f };
 
-	float moveSpeed = 0.03f;
-	float baseSpeed = 0.03f;
-	float sprintSpeed = 2.0f;
+	float moveSpeed = 0.01f;
+	float baseSpeed = 0.01f;
+	float sprintSpeed = 1.0f;
 
 	POINT mLastMousePos;
 	float mRotX = 0.0f;

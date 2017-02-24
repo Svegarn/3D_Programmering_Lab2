@@ -11,6 +11,7 @@ private:
 	~ContentManager();
 
 	std::vector<StaticMesh*> staticMeshes;
+	std::vector<DataStructures::Material*> materials;
 
 public:
 	static ContentManager& getInstance()
@@ -24,6 +25,9 @@ public:
 
 	void initializeContent();
 	std::vector<StaticMesh*>& getStaticMeshes();
+
+	void SetTexture(DataStructures::Material* material, std::wstring texturePath);
+	void SetCbuffer(DataStructures::Material* material);
 };
 
 #endif

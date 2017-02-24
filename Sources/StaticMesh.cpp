@@ -1,7 +1,10 @@
 #include "StaticMesh.h"
 
-StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
+StaticMesh::StaticMesh(std::string filePath, DataStructures::Material* material, DirectX::XMMATRIX worldMatrix)
 {
+	mMaterial = material;
+	DirectX::XMStoreFloat4x4(&mWorldMatrix, worldMatrix);
+
 	FbxManager* manager = FbxManager::Create();
 	FbxIOSettings *ios = FbxIOSettings::Create(manager, IOSROOT);
 	manager->SetIOSettings(ios);
@@ -39,22 +42,22 @@ StaticMesh::StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix)
 	}
 
 	// Get transformation
-	FbxDouble3 rotation = root->GetChild(0)->LclRotation.Get();
-	FbxDouble3 scaling = root->GetChild(0)->LclScaling.Get();
-	FbxDouble3 translation = root->GetChild(0)->LclTranslation.Get();
-
-	DirectX::XMVECTOR rotationQuat = DirectX::XMQuaternionRotationRollPitchYaw(rotation[0], rotation[1], rotation[2]);
-
-	DirectX::XMMATRIX transformation = DirectX::XMMatrixTransformation(
-		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
-		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-		DirectX::XMVectorSet(scaling[0], scaling[1], scaling[2], 1.0f),
-		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), //rotationQuat,
-		DirectX::XMVectorSet(translation[0], translation[1], translation[2], 1.0f)
-		);
-
-	DirectX::XMStoreFloat4x4(&mWorldMatrix, transformation);
+	//FbxDouble3 rotation = root->GetChild(0)->LclRotation.Get();
+	//FbxDouble3 scaling = root->GetChild(0)->LclScaling.Get();
+	//FbxDouble3 translation = root->GetChild(0)->LclTranslation.Get();
+	//
+	//DirectX::XMVECTOR rotationQuat = DirectX::XMQuaternionRotationRollPitchYaw(rotation[0], rotation[1], rotation[2]);
+	//
+	//DirectX::XMMATRIX transformation = DirectX::XMMatrixTransformation(
+	//	DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
+	//	DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+	//	DirectX::XMVectorSet(scaling[0], scaling[1], scaling[2], 1.0f),
+	//	DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+	//	DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), //rotationQuat,
+	//	DirectX::XMVectorSet(translation[0], translation[1], translation[2], 1.0f)
+	//	);
+	//
+	//DirectX::XMStoreFloat4x4(&mWorldMatrix, transformation);
 	
 	// Get mesh data
 	FbxVector4* controlPoints = mesh->GetControlPoints();
@@ -203,9 +206,6 @@ StaticMesh::~StaticMesh()
 {
 	mVertexBuffer->Release();
 	mWorldMatrixBuffer->Release();
-
-	if(mMaterial.srv != nullptr)
-		mMaterial.srv->Release();
 }
 
 void StaticMesh::Update()
@@ -238,27 +238,30 @@ DirectX::XMFLOAT4X4* StaticMesh::getWorldMatrix()
 	return &mWorldMatrix;
 }
 
-void StaticMesh::setMaterial(DataStructures::LambertData material, std::wstring texturePath)
+void StaticMesh::setMaterial(DataStructures::Material* material, std::wstring texturePath)
 {
-	mMaterial.data = material;
+	mMaterial = material;
 
 	if (texturePath.length() > 0) {
-		if (mMaterial.srv != nullptr)
-			mMaterial.srv->Release();
+		if (mMaterial->srv != nullptr)
+			mMaterial->srv->Release();
 
 		HRESULT hr = DirectX::CreateDDSTextureFromFile(
 			GraphicsManager::getInstance().getDevice(),
 			texturePath.c_str(),
 			NULL,
-			&mMaterial.srv
+			&mMaterial->srv
 			);
 
-		if (SUCCEEDED(hr))
-			mMaterial.hasTexture = true;
+		if (!SUCCEEDED(hr))
+		{
+			OutputDebugString(L"Could not load material texture!");
+			exit(-1);
+		}
 	}
 }
 
-DataStructures::LambertMaterial* StaticMesh::getMaterial()
+DataStructures::Material* StaticMesh::getMaterial()
 {
-	return &mMaterial;
+	return mMaterial;
 }

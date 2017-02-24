@@ -4,7 +4,7 @@ struct VS_OUT
 	float2 Tex : TEXCOORD;
 };
 
-VS_OUT VS_main(uint id: SV_VertexID)
+VS_OUT VS_main(uint id : SV_VertexID)
 {
 	VS_OUT output = (VS_OUT)0;
 

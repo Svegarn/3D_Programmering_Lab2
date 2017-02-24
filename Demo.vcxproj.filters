@@ -31,6 +31,9 @@
     <Filter Include="Shaders\Grid">
       <UniqueIdentifier>{f2a3f470-e2bc-499b-849e-2b12f2276dac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Particle">
+      <UniqueIdentifier>{272f643d-6bf3-4fd7-9813-edaff9dc69b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sources\GraphicsManager.cpp">
@@ -108,6 +111,15 @@
     </FxCompile>
     <FxCompile Include="Shaders\GridShaders\Grid_GS.hlsl">
       <Filter>Shaders\Grid</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Particle\Particle_PS.hlsl">
+      <Filter>Shaders\Particle</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Particle\Particle_VS.hlsl">
+      <Filter>Shaders\Particle</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Particle\Particle_GS.hlsl">
+      <Filter>Shaders\Particle</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

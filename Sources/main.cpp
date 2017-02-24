@@ -13,12 +13,12 @@
 	* Normal mapping
 	* Correct sampling
 	* Anti-aliasing
-	* FBX import
+	* FBX import polish (add support for indexing)
 	* Tesselation w/ displacement mapping
-	* Some culling technique
+	* Implement a culling technique
 	* Skeletal animation
 	* Animation blending
-	* Node hierarchy, weapons n such
+	* Node hierarchy, weapons and such
 
 */
 

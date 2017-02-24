@@ -1,12 +1,13 @@
-cbuffer matrixBuffer: register(b0)
+cbuffer matrixBuffer : register(b0)
 {
 	float4x4 view;
 	float4x4 projection;
+	float4x4 viewInverse;
+	float4x4 projectionInverse;
 	float4 dt;
 	float4 eyePos;
 }
-
-cbuffer matrixBuffer: register(b1)
+cbuffer matrixBuffer : register(b1)
 {
 	float4x4 world;
 }
@@ -35,7 +36,4 @@ void GS_main(line VS_OUT input[2] : SV_POSITION, inout LineStream< GS_OUT > outp
 
 	element.Pos = mul(input[1].Pos, mul(world, mul(view, projection)));
 	output.Append(element);
-
-	//element.Pos = mul(input[0].Pos + float4(axis, 0.0f), mul(world, mul(view, projection)));
-	//output.Append(element);
 }

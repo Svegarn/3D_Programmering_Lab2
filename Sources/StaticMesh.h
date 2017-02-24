@@ -13,13 +13,13 @@ private:
 	ID3D11Buffer* mVertexBuffer = nullptr;
 	ID3D11Buffer* mWorldMatrixBuffer = nullptr;
 	DirectX::XMFLOAT4X4 mWorldMatrix;
-	DataStructures::LambertMaterial mMaterial;
+	DataStructures::Material* mMaterial;
 
 public:
 	UINT vertexCount = 0;
 
 	StaticMesh() {}
-	StaticMesh(std::string filePath, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
+	StaticMesh(std::string filePath, DataStructures::Material* material, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	StaticMesh(DataStructures::Vertex* vertexList, UINT vertexCount, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	StaticMesh(std::vector<DataStructures::Vertex> &vertexList, DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixIdentity());
 	~StaticMesh();
@@ -32,8 +32,8 @@ public:
 	void setWorldMatrix(DirectX::XMMATRIX matrix);
 	DirectX::XMFLOAT4X4* getWorldMatrix();
 
-	void setMaterial(DataStructures::LambertData material, std::wstring texturePath);
-	DataStructures::LambertMaterial* getMaterial();
+	void setMaterial(DataStructures::Material* material, std::wstring texturePath);
+	DataStructures::Material* getMaterial();
 };
 
 #endif

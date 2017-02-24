@@ -41,22 +41,27 @@ private:
 	ID3D11DepthStencilView* mDepthBuffer_DSV = nullptr;
 
 	// G-Buffers
-	ID3D11ShaderResourceView* mShadow_SRV = nullptr;
-
+	ID3D11Texture2D* mShadow_T2D = nullptr;
 	ID3D11Texture2D* mAlbedo_T2D = nullptr;
 	ID3D11Texture2D* mNormal_T2D = nullptr;
+	ID3D11Texture2D* mWpos_T2D = nullptr;
 	ID3D11Texture2D* mMaterial_T2D = nullptr;
 	ID3D11Texture2D* mGrid_T2D = nullptr;
 
+	ID3D11ShaderResourceView* mShadow_SRV = nullptr;
 	ID3D11ShaderResourceView* mAlbedo_SRV = nullptr;
 	ID3D11ShaderResourceView* mNormal_SRV = nullptr;
+	ID3D11ShaderResourceView* mWpos_SRV = nullptr;
 	ID3D11ShaderResourceView* mMaterial_SRV = nullptr;
 	ID3D11ShaderResourceView* mGrid_SRV = nullptr;
 
 	ID3D11RenderTargetView* mAlbedo_RTV = nullptr;
 	ID3D11RenderTargetView* mNormal_RTV = nullptr;
+	ID3D11RenderTargetView* mWpos_RTV = nullptr;
 	ID3D11RenderTargetView* mMaterial_RTV = nullptr;
 	ID3D11RenderTargetView* mGrid_RTV = nullptr;
+
+	ID3D11DepthStencilView* mShadow_DSV = nullptr;
 
 	// Resources
 	ID3D11ShaderResourceView* mBTH_SRV = nullptr;
@@ -88,6 +93,10 @@ private:
 	ID3D11VertexShader* mGridVertexShader = nullptr;
 	ID3D11GeometryShader* mGridGeometryShader = nullptr;
 	ID3D11PixelShader* mGridPixelShader = nullptr;
+
+	ID3D11VertexShader* mParticleVertexShader = nullptr;
+	ID3D11GeometryShader* mParticleGeometryShader = nullptr;
+	ID3D11PixelShader* mParticlePixelShader = nullptr;
 
 	ID3D11DepthStencilView* tempDSV = NULL;
 	ID3D11RenderTargetView* tempRTV[4] = { NULL };

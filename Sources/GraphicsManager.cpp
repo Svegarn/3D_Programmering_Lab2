@@ -23,51 +23,82 @@ void GraphicsManager::Render()
 	mDeviceContext->ClearRenderTargetView(mGrid_RTV, clearColor);
 
 	mDeviceContext->ClearDepthStencilView(mDepthBuffer_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	mDeviceContext->ClearDepthStencilView(mShadow_DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	// ######################################################### SHADOW PASS
+	
+	mDeviceContext->OMSetRenderTargets(0, nullptr, mShadow_DSV);
+	
+	mDeviceContext->VSSetShader(mShadowVertexShader, nullptr, 0);
+	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->HSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->DSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->PSSetShader(nullptr, nullptr, 0);
+	
+	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mDeviceContext->IASetInputLayout(mShadowVertexLayout);
+	
+	for (UINT i = 1; i < ContentManager::getInstance().getStaticMeshes().size(); i++)
+	{	
+		mDeviceContext->VSSetConstantBuffers(0, 1, &mCameraCbuffer);
+		mDeviceContext->VSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[i]->getWorldMatrixBuffer());
+	
+		mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[i]->getVertexBuffer(), &vertexSize, &offset);
+	
+		mDeviceContext->Draw(ContentManager::getInstance().getStaticMeshes()[i]->vertexCount, 0);
+	}
 
 	// ######################################################### SPINNING BOX
 
 	mDeviceContext->OMSetRenderTargets(1, &mAlbedo_RTV, mDepthBuffer_DSV);
-
+	
 	mDeviceContext->VSSetShader(mLab2VertexShader, nullptr, 0);
 	mDeviceContext->HSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->DSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->GSSetShader(mLab2GeometryShader, nullptr, 0);
 	mDeviceContext->PSSetShader(mLab2PixelShader, nullptr, 0);
-
+	
 	mDeviceContext->PSSetSamplers(0, 1, &mLinearClampSampler);
-
+	
 	mDeviceContext->GSSetConstantBuffers(0, 1, &mCameraCbuffer);
 	mDeviceContext->GSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[0]->getWorldMatrixBuffer());
 	mDeviceContext->PSSetConstantBuffers(0, 1, &mCameraCbuffer);
-
+	
 	mDeviceContext->PSSetShaderResources(0, 1, &mBTH_SRV);
-
+	
 	mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[0]->getVertexBuffer(), &vertexSize, &offset);
-
+	
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetInputLayout(mLab2VertexLayout);
-
+	
 	mDeviceContext->Draw(6, 0);
 
 	// ######################################################### GEOMETRY PASS
 
-	ID3D11RenderTargetView* targets[3] = { mAlbedo_RTV, mNormal_RTV, mMaterial_RTV };
+	ID3D11RenderTargetView* targets[4] = { mAlbedo_RTV, mNormal_RTV, mWpos_RTV, mMaterial_RTV };
 
-	mDeviceContext->OMSetRenderTargets(3, targets, mDepthBuffer_DSV);
+	mDeviceContext->OMSetRenderTargets(4, targets, mDepthBuffer_DSV);
 
 	mDeviceContext->VSSetShader(mBasicVertexShader, nullptr, 0);
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->HSSetShader(nullptr, nullptr, 0);
+	mDeviceContext->DSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mBasicPixelShader, nullptr, 0);
+
+	mDeviceContext->PSSetSamplers(0, 1, &mLinearClampSampler);
 
 	mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	mDeviceContext->IASetInputLayout(mBasicVertexLayout);
 
 	for (UINT i = 1; i < ContentManager::getInstance().getStaticMeshes().size(); i++)
 	{
-		mDeviceContext->PSSetShaderResources(0, 1, &ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->srv);
+		if(ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->data.hasTexture.x == 1)
+			mDeviceContext->PSSetShaderResources(0, 1, &ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->srv);
 
 		mDeviceContext->VSSetConstantBuffers(0, 1, &mCameraCbuffer);
 		mDeviceContext->VSSetConstantBuffers(1, 1, ContentManager::getInstance().getStaticMeshes()[i]->getWorldMatrixBuffer());
+		mDeviceContext->PSSetConstantBuffers(0, 1, &mCameraCbuffer);
+		mDeviceContext->PSSetConstantBuffers(1, 1, &ContentManager::getInstance().getStaticMeshes()[i]->getMaterial()->cBuffer);
 
 		mDeviceContext->IASetVertexBuffers(0, 1, ContentManager::getInstance().getStaticMeshes()[i]->getVertexBuffer(), &vertexSize, &offset);
 
@@ -99,7 +130,7 @@ void GraphicsManager::Render()
 		}
 	}
 
-	// #########################################################
+	// ######################################################### DEFERRED
 
 	mDeviceContext->OMSetRenderTargets(1, &mBackbufferRTV, NULL);
 
@@ -107,9 +138,9 @@ void GraphicsManager::Render()
 	mDeviceContext->GSSetShader(nullptr, nullptr, 0);
 	mDeviceContext->PSSetShader(mDeferredPixelShader, nullptr, 0);
 
-	ID3D11ShaderResourceView* sources[5] = { mShadow_SRV, mAlbedo_SRV, mNormal_SRV, mMaterial_SRV, mGrid_SRV };
+	ID3D11ShaderResourceView* sources[6] = { mShadow_SRV, mAlbedo_SRV, mNormal_SRV, mWpos_SRV, mMaterial_SRV, mGrid_SRV };
 
-	mDeviceContext->PSSetShaderResources(0, 5, sources);
+	mDeviceContext->PSSetShaderResources(0, 6, sources);
 
 	mDeviceContext->IASetVertexBuffers(0, 0, NULL, 0, 0);
 	mDeviceContext->IASetIndexBuffer(NULL, (DXGI_FORMAT)0, 0);
@@ -118,6 +149,23 @@ void GraphicsManager::Render()
 	mDeviceContext->IASetInputLayout(NULL);
 
 	mDeviceContext->Draw(3, 0);
+
+	// ######################################################### PARTICLE
+
+	//mDeviceContext->VSSetShader(mParticleVertexShader, nullptr, 0);
+	//mDeviceContext->GSSetShader(mParticleGeometryShader, nullptr, 0);
+	//mDeviceContext->PSSetShader(mParticlePixelShader, nullptr, 0);
+	//
+	//mDeviceContext->GSSetConstantBuffers(0, 1, &mCameraCbuffer);
+	//mDeviceContext->GSSetConstantBuffers(1, 0, nullptr);
+	//
+	//mDeviceContext->IASetVertexBuffers(0, 0, NULL, 0, 0);
+	//mDeviceContext->IASetIndexBuffer(NULL, (DXGI_FORMAT)0, 0);
+	//
+	//mDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	//mDeviceContext->IASetInputLayout(NULL);
+	//
+	//mDeviceContext->Draw(1, 0);
 
 	// #########################################################
 
@@ -509,10 +557,82 @@ void GraphicsManager::CreateShaders() {
 	hr = mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mGridPixelShader);
 	// we do not need anymore this COM object, so we release it.
 	pPS->Release();
+
+	//##################################################################################################################################
+	//#############################################			 Particle			########################################################
+	//##################################################################################################################################
+
+	//create vertex shader
+	if (mParticleVertexShader != nullptr)
+		mParticleVertexShader->Release();
+
+	hr = D3DCompileFromFile(
+		L"Shaders/Particle/Particle_VS.hlsl", // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		"VS_main",		// entry point
+		"vs_5_0",		// shader model (target)
+		0,				// shader compile options			// here DEBUGGING OPTIONS
+		0,				// effect compile options
+		&pVS,			// double pointer to ID3DBlob		
+		&errorblob			// pointer for Error Blob messages.
+							// how to use the Error blob, see here
+							// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+		);
+
+	if (errorblob) {
+		OutputDebugStringA((char*)errorblob->GetBufferPointer());
+		errorblob->Release();
+	}
+
+	hr = mDevice->CreateVertexShader(pVS->GetBufferPointer(), pVS->GetBufferSize(), nullptr, &mParticleVertexShader);
+	pVS->Release();
+
+	//create geometry shader
+	if (mParticleGeometryShader != nullptr)
+		mParticleGeometryShader->Release();
+
+	hr = D3DCompileFromFile(
+		L"Shaders/Particle/Particle_GS.hlsl",
+		nullptr,
+		nullptr,
+		"GS_main",
+		"gs_5_0",
+		0,
+		0,
+		&pGS,
+		nullptr
+		);
+
+	hr = mDevice->CreateGeometryShader(pGS->GetBufferPointer(), pGS->GetBufferSize(), nullptr, &mParticleGeometryShader);
+	pGS->Release();
+
+	//create pixel shader
+	if (mParticlePixelShader != nullptr)
+		mParticlePixelShader->Release();
+
+	hr = D3DCompileFromFile(
+		L"Shaders/Particle/Particle_PS.hlsl", // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		"PS_main",		// entry point
+		"ps_5_0",		// shader model (target)
+		0,				// shader compile options
+		0,				// effect compile options
+		&pPS,			// double pointer to ID3DBlob		
+		nullptr			// pointer for Error Blob messages.
+						// how to use the Error blob, see here
+						// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+		);
+
+	hr = mDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &mParticlePixelShader);
+	// we do not need anymore this COM object, so we release it.
+	pPS->Release();
 }
 
 void GraphicsManager::CreateDepthBuffer()
 {
+	// Standard
 	D3D11_TEXTURE2D_DESC depthMapDesc;
 
 	ZeroMemory(&depthMapDesc, sizeof(depthMapDesc));
@@ -525,7 +645,7 @@ void GraphicsManager::CreateDepthBuffer()
 	depthMapDesc.SampleDesc.Count = 1;
 	depthMapDesc.SampleDesc.Quality = 0;
 	depthMapDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	depthMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthMapDesc.CPUAccessFlags = 0;
 	depthMapDesc.MiscFlags = 0;
 
@@ -539,13 +659,41 @@ void GraphicsManager::CreateDepthBuffer()
 
 	hr = mDevice->CreateDepthStencilView(mDepthBuffer_T2D, &descDSV, &mDepthBuffer_DSV);
 
+	// Shadow
+
+	D3D11_TEXTURE2D_DESC shadowDepthDesc;
+
+	ZeroMemory(&shadowDepthDesc, sizeof(shadowDepthDesc));
+
+	shadowDepthDesc.Width = mWindowWidth;
+	shadowDepthDesc.Height = mWindowHeight;
+	shadowDepthDesc.MipLevels = 1;
+	shadowDepthDesc.ArraySize = 1;
+	shadowDepthDesc.Format = DXGI_FORMAT_R32_TYPELESS;;
+	shadowDepthDesc.SampleDesc.Count = 1;
+	shadowDepthDesc.SampleDesc.Quality = 0;
+	shadowDepthDesc.Usage = D3D11_USAGE_DEFAULT;
+	shadowDepthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowDepthDesc.CPUAccessFlags = 0;
+	shadowDepthDesc.MiscFlags = 0;
+
+	hr = mDevice->CreateTexture2D(&shadowDepthDesc, nullptr, &mShadow_T2D);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC descShadowDSV;
+	descShadowDSV.Format = DXGI_FORMAT_D32_FLOAT;
+	descShadowDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descShadowDSV.Texture2D.MipSlice = 0;
+	descShadowDSV.Flags = 0;
+
+	hr = mDevice->CreateDepthStencilView(mShadow_T2D, &descShadowDSV, &mShadow_DSV);
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC shadowDesc;
 	shadowDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	shadowDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	shadowDesc.Texture2D.MostDetailedMip = 0;
 	shadowDesc.Texture2D.MipLevels = 1;
 
-	hr = mDevice->CreateShaderResourceView(mDepthBuffer_T2D, &shadowDesc, &mShadow_SRV);
+	hr = mDevice->CreateShaderResourceView(mShadow_T2D, &shadowDesc, &mShadow_SRV);
 }
 
 void GraphicsManager::CreateGBuffers() {
@@ -574,16 +722,19 @@ void GraphicsManager::CreateGBuffers() {
 
 	HRESULT hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mAlbedo_T2D);
 	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mNormal_T2D);
+	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mWpos_T2D);
 	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mMaterial_T2D);
 	hr = mDevice->CreateTexture2D(&t2dDesc, NULL, &mGrid_T2D);
 
 	hr = mDevice->CreateShaderResourceView(mAlbedo_T2D, &srvDesc, &mAlbedo_SRV);
 	hr = mDevice->CreateShaderResourceView(mNormal_T2D, &srvDesc, &mNormal_SRV);
+	hr = mDevice->CreateShaderResourceView(mWpos_T2D, &srvDesc, &mWpos_SRV);
 	hr = mDevice->CreateShaderResourceView(mMaterial_T2D, &srvDesc, &mMaterial_SRV);
 	hr = mDevice->CreateShaderResourceView(mGrid_T2D, &srvDesc, &mGrid_SRV);
 
 	hr = mDevice->CreateRenderTargetView(mAlbedo_T2D, &rtvDesc, &mAlbedo_RTV);
 	hr = mDevice->CreateRenderTargetView(mNormal_T2D, &rtvDesc, &mNormal_RTV);
+	hr = mDevice->CreateRenderTargetView(mWpos_T2D, &rtvDesc, &mWpos_RTV);
 	hr = mDevice->CreateRenderTargetView(mMaterial_T2D, &rtvDesc, &mMaterial_RTV);
 	hr = mDevice->CreateRenderTargetView(mGrid_T2D, &rtvDesc, &mGrid_RTV);
 }
@@ -689,6 +840,8 @@ void GraphicsManager::CreateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMF
 {
 	DirectX::XMStoreFloat4x4(&mCameraData.view, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(view)));
 	DirectX::XMStoreFloat4x4(&mCameraData.projection, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(projection)));
+	DirectX::XMStoreFloat4x4(&mCameraData.viewInverse, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMLoadFloat4x4(view))));
+	DirectX::XMStoreFloat4x4(&mCameraData.projectionInverse, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMLoadFloat4x4(projection))));
 
 	// DT
 	mCameraData.DT = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -716,6 +869,7 @@ void GraphicsManager::UpdateCameraBuffer(DirectX::XMFLOAT4X4* view, DirectX::XMF
 {
 	//View
 	DirectX::XMStoreFloat4x4(&mCameraData.view, DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(view)));
+	DirectX::XMStoreFloat4x4(&mCameraData.viewInverse, DirectX::XMMatrixTranspose(DirectX::XMMatrixInverse(nullptr, DirectX::XMLoadFloat4x4(view))));
 
 	// DT
 	mCameraData.DT = { deltaTime, elapsedTime, 0.0f, 0.0f };
@@ -741,16 +895,19 @@ GraphicsManager::~GraphicsManager()
 
 	mAlbedo_SRV->Release();
 	mNormal_SRV->Release();
+	mWpos_SRV->Release();
 	mMaterial_SRV->Release();
 	mGrid_SRV->Release();
 
 	mAlbedo_RTV->Release();
 	mNormal_RTV->Release();
+	mWpos_RTV->Release();
 	mMaterial_RTV->Release();
 	mGrid_RTV->Release();
 
 	mAlbedo_T2D->Release();
 	mNormal_T2D->Release();
+	mWpos_T2D->Release();
 	mMaterial_T2D->Release();
 	mGrid_T2D->Release();
 
@@ -774,7 +931,12 @@ GraphicsManager::~GraphicsManager()
 	mDeferredPixelShader->Release();
 
 	mGridVertexShader->Release();
+	mGridGeometryShader->Release();
 	mGridPixelShader->Release();
+
+	mParticleVertexShader->Release();
+	mParticleGeometryShader->Release();
+	mParticlePixelShader->Release();
 
 	mBackbufferRTV->Release();
 	mRasterState->Release();
