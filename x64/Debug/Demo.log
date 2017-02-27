@@ -1,12 +1,18 @@
-﻿Build started 24/2/2017 16:46:08.
-     1>Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" on node 2 (Build target(s)).
-     1>FxCompile:
-         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"PS_main" /T ps_5_0 /Fo "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Deferred_PS.cso" Shaders\DeferredShaders\Deferred_PS.hlsl 
-         compilation object save succeeded; see C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Deferred_PS.cso
+﻿Build started 2017-02-24 21:35:51.
+     1>Project "C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\include" /Zi /nologo /W1 /WX- /Od /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Sources\GraphicsManager.cpp
+         GraphicsManager.cpp
        Link:
-         Demo.vcxproj -> C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.exe
-     1>Done Building Project "C:\Users\CKN\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" (Build target(s)).
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.exe" /NOLOGO /LIBPATH:"C:\Program Files\Autodesk\FBX\FBX SDK\2017.1\lib\vs2015\x64\release" "libfbxsdk-md.lib" libfbxsdk.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.lib" /MACHINE:X64 x64\Debug\DDSTextureLoader.obj
+         x64\Debug\Camera.obj
+         x64\Debug\ContentManager.obj
+         x64\Debug\GraphicsManager.obj
+         x64\Debug\main.obj
+         x64\Debug\StaticMesh.obj
+         Demo.vcxproj -> C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\x64\Debug\Demo.exe
+     1>Done Building Project "C:\Users\Svegarn_\Documents\GitHub\3D_Programmering_Lab2\Demo.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.17
+Time Elapsed 00:00:01.92

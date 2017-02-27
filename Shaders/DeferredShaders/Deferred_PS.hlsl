@@ -29,13 +29,19 @@ float map(float s, float a1, float a2, float b1, float b2);
 float4 PS_main(VS_OUT input) : SV_Target
 {
 	float4 outColor = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	float3 materialColor = albedoTex.Sample(textureSampler, input.Tex).xyz;
+
+	// Ambient //
+	float3 lightColor = float3(1.0f, 1.0f, 1.0f);
+	float3 ambient = lightColor * materialColor * 0.2f;
 
 	// Diffuse //
 	float3 lightDir = float3(0.0f, -1.0f, 0.0f);
 	float3 normal = normalize(normalTex.Sample(textureSampler, input.Tex).xyz);
-	float3 materialColor = albedoTex.Sample(textureSampler, input.Tex).xyz;
 	float diffuseIntensity = max(dot(normal, -lightDir), 0.0f);
-	outColor.xyz = materialColor * diffuseIntensity;
+	float3 diffuse = lightColor * (materialColor * diffuseIntensity);
+
+	outColor = float4(ambient + diffuse, 1.0f);
 
 	// Specular //
 	float shinyness = materialTex.Sample(textureSampler, input.Tex).w;
@@ -43,10 +49,11 @@ float4 PS_main(VS_OUT input) : SV_Target
 	{
 		float3 pixelToEye = normalize(eyePos.xyz - wposTex.Sample(textureSampler, input.Tex).xyz);
 		float3 reflection = reflect(lightDir, normal);
-		float3 specularLight = pow(max(dot(reflection, pixelToEye), 0.0f), shinyness);
+		float3 specularLight = lightColor * pow(max(dot(reflection, pixelToEye), 0.0f), shinyness);
 
-		outColor = float4(outColor.xyz + specularLight, 1.0f);
+		outColor.xyz += specularLight;
 	}
+
 
 	// Temp crosshair
 	float tempX = (0.25f - input.Tex.x) + 0.25f;
@@ -62,14 +69,16 @@ float4 PS_main(VS_OUT input) : SV_Target
 		outColor = grid * grid.a;
 
 
-	// Blits
-	if (input.Tex.x < 0.5f && input.Tex.y < 0.5f)
-		outColor = shadowTex.Sample(textureSampler, input.Tex);
-	else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
-		outColor = albedoTex.Sample(textureSampler, input.Tex);
-	else if (input.Tex.x < 0.5f && input.Tex.y > 0.5f)
-		outColor = float4(normal, 0.0f);
-
+	//// Blits
+	//if (input.Tex.x < 0.5f && input.Tex.y < 0.5f)
+	//{
+	//	outColor = shadowTex.Sample(textureSampler, input.Tex);
+	//	outColor.x = map(outColor.x, 0.9999f, 1.0f, 0.0f, 1.0f);
+	//}
+	//else if (input.Tex.x > 0.5f && input.Tex.y < 0.5f)
+	//	outColor = albedoTex.Sample(textureSampler, input.Tex);
+	//else if (input.Tex.x < 0.5f && input.Tex.y > 0.5f)
+	//	outColor = float4(normal, 0.0f);
 
 	return outColor;
 };

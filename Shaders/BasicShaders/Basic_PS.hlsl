@@ -39,7 +39,7 @@ PS_OUT PS_main(VS_OUT input)
 	PS_OUT output = (PS_OUT)0;
 
 	float2 animTex = input.Tex;
-	animTex.x += (dt.y * misc.x);
+	animTex.x += dt.y * misc.x;
 
 	// Pulsing
 	//outColor.r *= (0.5f * sin(dt.y * 0.002)) + 0.5f;

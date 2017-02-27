@@ -889,10 +889,11 @@ GraphicsManager::~GraphicsManager()
 	mBTH_T2D->Release();
 
 	mDepthBuffer_DSV->Release();
+	mShadow_DSV->Release();
 
-	mShadow_SRV->Release();
 	mBTH_SRV->Release();
 
+	mShadow_SRV->Release();
 	mAlbedo_SRV->Release();
 	mNormal_SRV->Release();
 	mWpos_SRV->Release();
@@ -905,6 +906,7 @@ GraphicsManager::~GraphicsManager()
 	mMaterial_RTV->Release();
 	mGrid_RTV->Release();
 
+	mShadow_T2D->Release();
 	mAlbedo_T2D->Release();
 	mNormal_T2D->Release();
 	mWpos_T2D->Release();
